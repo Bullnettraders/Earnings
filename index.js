@@ -99,9 +99,7 @@ ${formatOverview(rows)}`);
         const now = new Date().toISOString().substr(11,5);
         await channel.send(`🕑 **Neue Earnings-Meldungen (${now})**
 
-${updates.join('
-
-')}`);
+${updates.join('\n\n')}`);
       }
     } catch (err) {
       console.error('Polling-Job Fehler:', err);

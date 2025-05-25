@@ -38,7 +38,7 @@ function formatOverview(rows) {
   if (!rows.length) return 'Keine Earnings heute.';
   return rows.map(r =>
     `\`${r.time}\` • **${r.symbol}** (${r.company})\n` +
-    `> Estimate EPS: ${r.epsEstimate || '-'}'
+    `> Estimate EPS: ${r.epsEstimate || '-'} `
   ).join('\n\n');
 }
 
@@ -61,48 +61,61 @@ client.once('ready', () => {
 
   // 00:00 Uhr: Übersicht
   cron.schedule('0 0 * * *', async () => {
-    const date = new Date().toISOString().slice(0,10);
-    const rows = await fetchEarningsCalendar(date);
-    await channel.send(
-      `📈 **Nasdaq Earnings Calendar ${date}**\n\n` +
-      formatOverview(rows)
-    );
+    try {
+      const date = new Date().toISOString().slice(0,10);
+      const rows = await fetchEarningsCalendar(date);
+      await channel.send(
+        `📈 **Nasdaq Earnings Calendar ${date}**\n\n` +
+        formatOverview(rows)
+      );
+    } catch (err) {
+      console.error('00:00-Job Fehler (Earnings Overview):', err);
+    }
   }, { timezone: tz });
 
   // 08–22 Uhr Polling jede Minute
   cron.schedule('*/1 8-22 * * *', async () => {
-    const date = new Date().toISOString().slice(0,10);
-    const rows = await fetchEarningsCalendar(date);
-    const updates = [];
-    for (const r of rows) {
-      if (!r.epsActual) continue;
-      const key = r.symbol;
-      if (lastEps[key] !== r.epsActual) {
-        const cmp = compareEps(r.epsActual, r.epsEstimate);
-        updates.push(
-          `\`${r.time}\` • **${r.symbol}** (${r.company}): ${r.epsActual} EPS ${cmp}`
-        );
-        lastEps[key] = r.epsActual;
+    try {
+      const date = new Date().toISOString().slice(0,10);
+      const rows = await fetchEarningsCalendar(date);
+      const updates = [];
+      for (const r of rows) {
+        if (!r.epsActual) continue;
+        const key = r.symbol;
+        if (lastEps[key] !== r.epsActual) {
+          const cmp = compareEps(r.epsActual, r.epsEstimate);
+          updates.push(
+            `\`${r.time}\` • **${r.symbol}** (${r.company}): ${r.epsActual} EPS ${cmp}`
+          );
+          lastEps[key] = r.epsActual;
+        }
       }
-    }
-    if (updates.length) {
-      const now = new Date().toISOString().substr(11,5);
-      await channel.send(
-        `🕑 **Neue Earnings-Meldungen (${now})**\n\n` +
-        updates.join('\n\n')
-      );
+      if (updates.length) {
+        const now = new Date().toISOString().substr(11,5);
+        await channel.send(
+          `🕑 **Neue Earnings-Meldungen (${now})**\n\n` +
+          updates.join('\n\n')
+        );
+      }
+    } catch (err) {
+      console.error('Polling-Job Fehler (EPS Actual):', err);
     }
   }, { timezone: tz });
 
   // Test-Command
   client.on('messageCreate', async msg => {
     if (msg.channelId === channelId && msg.content === '!earnings') {
-      const date = new Date().toISOString().slice(0,10);
-      const rows = await fetchEarningsCalendar(date);
-      await msg.reply(
-        `📈 **Test: Nasdaq Earnings Calendar**\n\n` +
-        formatOverview(rows)
-      );
+      try {
+        const date = new Date().toISOString().slice(0,10);
+        const rows = await fetchEarningsCalendar(date);
+        await msg.reply(
+          `📈 **Test: Nasdaq Earnings Calendar**\n\n` +
+          formatOverview(rows)
+        );
+      } catch (err) {
+        console.error('Test-Command Fehler (Earnings):', err);
+        await msg.reply('Fehler beim Abrufen der Earnings. Siehe Logs.');
+      }
     }
   });
 });

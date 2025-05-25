@@ -1,5 +1,4 @@
-// util.js
-// ----------------
+// === util.js ===
 // Utility-Funktionen für den Nasdaq Earnings Bot
 // Kann in Tests importiert werden
 
@@ -46,14 +45,13 @@ export function compareEps(actualStr, estimateStr) {
   const a = parseFloat(actualStr.replace(/[^0-9.-]/g, ''));
   const e = parseFloat(estimateStr.replace(/[^0-9.-]/g, ''));
   if (isNaN(a) || isNaN(e)) return '';
-  if (a > e) return '🔺 über Expectation';
+  if (a > e) return '🔺 über Erwartation';
   if (a < e) return '🔻 unter Expectation';
   return '→ exakt Erwartung';
 }
 
 
-// index.js
-// ----------------
+// === index.js ===
 // Hauptskript: Discord-Bot mit Cron-Jobs und Slash-Command für Earnings-Reporting
 
 import { Client, GatewayIntentBits, Routes } from 'discord.js';
@@ -69,6 +67,7 @@ const token = process.env.DISCORD_TOKEN;
 const channelId = process.env.CHANNEL_ID;
 const tz = process.env.TZ || 'Europe/Berlin';
 
+// Slash-Command Definition
 const commands = [
   {
     name: 'earnings',

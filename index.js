@@ -39,14 +39,15 @@ async function fetchEarningsCalendar(date) {
 
 function formatOverview(rows) {
   if (!rows.length) return 'Keine Earnings heute.';
-  return rows.map(r => {
+  const lines = rows.map(r => {
     const symbol = r.symbol || r.ticker || '';
     const company = r.company || '';
     const time = r.time || '';
     const estimate = r.epsEstimate || '-';
     return `\`${time}\` • **${symbol}** (${company})
 > Estimate EPS: ${estimate}`;
-  }).join('
+  });
+  return lines.join('
 
 ');
 }

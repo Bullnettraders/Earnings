@@ -47,9 +47,7 @@ function formatOverview(rows) {
     return `\`${time}\` • **${symbol}** (${company})
 > Estimate EPS: ${estimate}`;
   });
-  return lines.join('
-
-');
+  return lines.join('\n\n');
 }
 
 function compareEps(actualStr, estimateStr) {
